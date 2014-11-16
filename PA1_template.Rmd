@@ -28,8 +28,10 @@ hist(as.numeric(rr1$sumsteps), col="red", main="Total number of steps taken each
 - ***Calculate and report the*** **mean** ***and*** **median** ***total number of steps taken per day***  
 ```{r}
 summary(as.numeric(rr1[!is.na(rr1$sumsteps),"sumsteps"]))
+rr1_mean<-round(mean(as.numeric(rr1[!is.na(rr1$sumsteps),"sumsteps"])),-1)
+rr1_median<-round(median(as.numeric(rr1[!is.na(rr1$sumsteps),"sumsteps"])),-1)
 ```
-As you can see **mean** and **median** values are the same in this case: **10800 steps**.
+As you can see **mean = `r format(rr1_mean, digits=5)`** and **median = `r format(rr1_median, digits=5)`**.
 
 ```{r}
 boxplot(as.numeric(rr1$sumsteps), col="red")
@@ -44,7 +46,9 @@ boxplot(as.numeric(rr1$sumsteps), col="red")
 rr2<-sqldf("select interval, avg(steps) as avgsteps from dd where steps is not null group by interval")
 xyplot(avgsteps~interval, data=rr2, type="l")
 ```
+
 - ***Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?***
+
 ```{r}
 sqldf("select interval, avgsteps from rr2 where avgsteps=(select max(avgsteps) from rr2)")
 ```
