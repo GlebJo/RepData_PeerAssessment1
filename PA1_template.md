@@ -5,34 +5,12 @@
 
 ```r
 library(sqldf)
-```
-
-```
-## Loading required package: gsubfn
-## Loading required package: proto
-## Loading required package: RSQLite
-## Loading required package: DBI
-## Loading required package: RSQLite.extfuns
-```
-
-```r
 library(lattice)
 library(ggplot2)
 
 dd<-read.table(unzip("./activity.zip"), header=TRUE, sep=",")
 dd<-sqldf("select *, strftime('%w',date) as wdn from dd")
-```
-
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
-```
-
-```r
 dd<-sqldf("select *, case when wdn between 1 and 5 then 'Weekday' else 'Weekend' end as wd from dd")
-```
-
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
 ```
 
 
@@ -40,10 +18,6 @@ dd<-sqldf("select *, case when wdn between 1 and 5 then 'Weekday' else 'Weekend'
 
 ```r
 rr1<-sqldf("select date, wdn, wd, sum(steps) as sumsteps, avg(steps) as avgsteps from dd where steps is not null group by date, wdn, wd")
-```
-
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
 ```
 - ***Make a histogram of the total number of steps taken each day***
 
@@ -53,9 +27,7 @@ dev=png
 hist(as.numeric(rr1$sumsteps), col="red", main="Total number of steps taken each day", xlab="Steps by day", ylab="Days count")
 ```
 
-```
-## Error in hist(as.numeric(rr1$sumsteps), col = "red", main = "Total number of steps taken each day", : object 'rr1' not found
-```
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 - ***Calculate and report the*** **mean** ***and*** **median** ***total number of steps taken per day***  
 
@@ -64,18 +36,22 @@ summary(as.numeric(rr1[!is.na(rr1$sumsteps),"sumsteps"]))
 ```
 
 ```
-## Error in summary(as.numeric(rr1[!is.na(rr1$sumsteps), "sumsteps"])): error in evaluating the argument 'object' in selecting a method for function 'summary': Error: object 'rr1' not found
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10760   10770   13290   21190
 ```
-As you can see **mean** and **median** values are the same in this case: **10800 steps**.
+
+```r
+rr1_mean<-round(mean(as.numeric(rr1[!is.na(rr1$sumsteps),"sumsteps"])),-1)
+rr1_median<-round(median(as.numeric(rr1[!is.na(rr1$sumsteps),"sumsteps"])),-1)
+```
+As you can see **mean = 10770** and **median = 10760**.
 
 
 ```r
 boxplot(as.numeric(rr1$sumsteps), col="red")
 ```
 
-```
-## Error in boxplot(as.numeric(rr1$sumsteps), col = "red"): object 'rr1' not found
-```
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
 
 
 ## What is the average daily activity pattern?
@@ -85,27 +61,21 @@ boxplot(as.numeric(rr1$sumsteps), col="red")
 
 ```r
 rr2<-sqldf("select interval, avg(steps) as avgsteps from dd where steps is not null group by interval")
-```
-
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
-```
-
-```r
 xyplot(avgsteps~interval, data=rr2, type="l")
 ```
 
-```
-## Error in eval(substitute(groups), data, environment(x)): object 'rr2' not found
-```
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
+
 - ***Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?***
+
 
 ```r
 sqldf("select interval, avgsteps from rr2 where avgsteps=(select max(avgsteps) from rr2)")
 ```
 
 ```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
+##   interval avgsteps
+## 1      835 206.1698
 ```
 Maximum number of steps (**206.2**) in this pattern found at **835** interval.
 
@@ -119,7 +89,8 @@ sqldf("select count(*) as [NA count] from dd where steps is null")
 ```
 
 ```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
+##   NA count
+## 1     2304
 ```
 - ***Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.***
 
@@ -130,18 +101,8 @@ Now lets replace NAs with average values of activity pattern from previous study
 
 ```r
 dd1<-sqldf("select a.date, a.wdn, a.wd, a.interval, case when a.steps is null then b.avgsteps else a.steps end as steps from dd a inner join rr2 b on a.interval = b.interval ")
-```
 
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
-```
-
-```r
 rr3<-sqldf("select date, wdn, wd, sum(steps) as sumsteps, avg(steps) as avgsteps from dd1 group by date, wdn, wd")
-```
-
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
 ```
 - ***Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?***
 
@@ -149,36 +110,18 @@ rr3<-sqldf("select date, wdn, wd, sum(steps) as sumsteps, avg(steps) as avgsteps
 ```r
 par(mfrow=c(1,2))
 hist(as.numeric(rr1$sumsteps), col="red", main="Total number of steps taken each day (No NAs)", xlab="Steps by day", ylab="Days count")
-```
-
-```
-## Error in hist(as.numeric(rr1$sumsteps), col = "red", main = "Total number of steps taken each day (No NAs)", : object 'rr1' not found
-```
-
-```r
 hist(as.numeric(rr3$sumsteps), col="blue", main="Total number of steps taken each day (Fill NAs)", xlab="Steps by day", ylab="Days count")
 ```
 
-```
-## Error in hist(as.numeric(rr3$sumsteps), col = "blue", main = "Total number of steps taken each day (Fill NAs)", : object 'rr3' not found
-```
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
 
 ```r
 par(mfrow=c(1,1))
 rr4<-sqldf("select 'No NAs' as type,  * from rr1 union all select 'Fill NAs' as type,  * from rr3 order by type desc")
-```
-
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
-```
-
-```r
 boxplot(rr4$sumsteps ~ rr4$type, col=c("blue", "red"))
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'rr4' not found
-```
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
 
 Mean & median values (No NAs)
 
@@ -187,7 +130,8 @@ summary(rr1$sumsteps)
 ```
 
 ```
-## Error in summary(rr1$sumsteps): error in evaluating the argument 'object' in selecting a method for function 'summary': Error: object 'rr1' not found
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10760   10770   13290   21190
 ```
 Mean & median values (Fill NAs)
 
@@ -196,7 +140,8 @@ summary(rr3$sumsteps)
 ```
 
 ```
-## Error in summary(rr3$sumsteps): error in evaluating the argument 'object' in selecting a method for function 'summary': Error: object 'rr3' not found
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    9819   10640   10750   12810   21190
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -204,24 +149,21 @@ summary(rr3$sumsteps)
 
 ```r
 rr5<-sqldf("select wd, interval, avg(steps) as avgsteps from dd1 group by wd,interval")
-```
-
-```
-## Error in if (.allows_extensions(db)) {: missing value where TRUE/FALSE needed
-```
-
-```r
 summary(rr5)
 ```
 
 ```
-## Error in summary(rr5): error in evaluating the argument 'object' in selecting a method for function 'summary': Error: object 'rr5' not found
+##       wd               interval         avgsteps      
+##  Length:576         Min.   :   0.0   Min.   :  0.000  
+##  Class :character   1st Qu.: 588.8   1st Qu.:  1.972  
+##  Mode  :character   Median :1177.5   Median : 28.062  
+##                     Mean   :1177.5   Mean   : 38.932  
+##                     3rd Qu.:1766.2   3rd Qu.: 61.203  
+##                     Max.   :2355.0   Max.   :230.356
 ```
 
 ```r
 xyplot(avgsteps~interval|wd , data = rr5, type="l", layout = c(1,2) )
 ```
 
-```
-## Error in eval(substitute(groups), data, environment(x)): object 'rr5' not found
-```
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14-1.png) 
